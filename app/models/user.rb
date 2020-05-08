@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  geocoded_by :address_city
+  after_validation :geocode, if: :address_city_changed?
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   validates :introduction, length: { maximum: 50 }
@@ -50,6 +52,17 @@ class User < ApplicationRecord
         User.all
       end
     end
+  end
+
+  include JpPrefecture
+  jp_prefecture :prefecture_code
+
+  def prefecture_name
+    JpPrefecture::Prefecture.find(code: prefecture_code).try(:name)
+  end
+
+  def prefecture_name=(prefecture_name)
+    self.prefecture_code = JpPrefecture::Prefecture.find(name: prefecture_name).code
   end
   
 end
